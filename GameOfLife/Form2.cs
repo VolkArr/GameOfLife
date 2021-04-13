@@ -50,6 +50,7 @@ namespace GameOfLife
                     Graphics tempBMP = GameMap.CreateGraphics();
                     tempBMP.TranslateTransform(i * pixelsize, j * pixelsize);
                     this.map[i, j].cellBMP = tempBMP;
+                    map[i, j].cellThread.Start();
                 }
             }
         }
@@ -295,23 +296,11 @@ namespace GameOfLife
         private void pause_resume_button_Click(object sender, EventArgs e)
         {
             if (pause_resume_button.Text == "Возобновить") {
-                for (int i = 0; i < MapSize.Width; i++)
-                {
-                    for (int j = 0; j < MapSize.Height; j++)
-                    {
-                        map[i, j].cellThread.Start();
-                    }
-                }
+                Cell.Activity = true;
                 pause_resume_button.Text = "Пауза";
             }
             else{
-                for (int i = 0; i < MapSize.Width; i++)
-                {
-                    for (int j = 0; j < MapSize.Height; j++)
-                    {
-                        map[i, j].cellThread.Suspend();
-                    }
-                }
+                Cell.Activity = false;
                 pause_resume_button.Text = "Возобновить";
             }
       

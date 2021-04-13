@@ -181,11 +181,11 @@ namespace GameOfLife
     {
         static public int timersleep;
         public static int pixelsize;
-        private static Size cellsize = new Size(pixelsize, pixelsize);
         public Graphics cellBMP;
         public bool cellStatus = false;
         public Cell[] cells { private get; set; }
         public Thread cellThread;
+        public static bool Activity = false;
 
 
         public Cell()
@@ -197,8 +197,11 @@ namespace GameOfLife
         {
             while (true)
             {
-                UpdaateCell();
-                DrawCellsOnMap();
+                if (Activity)
+                {
+                    UpdaateCell();
+                    DrawCellsOnMap();
+                }
                 Thread.Sleep(timersleep);
             }
 
