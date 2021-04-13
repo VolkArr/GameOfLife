@@ -8,12 +8,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Threading;
+
 
 namespace GameOfLife
 {
-    public  partial class Form1 : Form
+
+    public partial class Form1 : Form
     {
-        bool[,] map;
+        Cell[,] map;
         public Form1()
         {
             InitializeComponent();
@@ -25,14 +28,37 @@ namespace GameOfLife
             comboBox2.SelectedIndex = 0;
         }
 
+        public void BoolToCells(bool[,] map)
+        {
+
+        }
+
+       
+
         private void InitMap()
         {
-            this.map = new bool[toInt(textBox1), toInt(textBox2)];
+
+            this.map = new Cell[toInt(textBox1), toInt(textBox2)];
             for (int i = 0; i < toInt(textBox1); i++)
             {
                 for (int j = 0; j < toInt(textBox2); j++)
                 {
-                    this.map[i, j] = false;
+                    this.map[i,j] = new Cell();
+                }
+            }
+            for (int i = 0; i < toInt(textBox1); i++)
+            {
+                for (int j = 0; j < toInt(textBox2); j++)
+                {
+                    Cell[] cells = new Cell[8];
+                    for(int c = 0; c < 9; c++)
+                    {
+                        Int32 k = c;
+                        if (c > 4) k--;
+                        if (c == 4 ) continue;
+                        cells[k] = this.map[(i + c / 3 - 1 + toInt(textBox1))% toInt(textBox1), (j + c % 3 - 1 + toInt(textBox2)) % toInt(textBox2)] ;
+                    }
+                    this.map[i, j].cells = cells;
                 }
             }
             Random rand = new Random();
@@ -43,17 +69,17 @@ namespace GameOfLife
                     switch (this.comboBox1.SelectedIndex)
                     {
                         case 0: // Пустой шаблон
-                            this.map[i, j] = false;
+                            this.map[i, j].cellStatus = false;
                             break;
                         case 1: // Рандомный
                             int val = rand.Next(0, 2);
                             switch (val)
                             {
                                 case 0:
-                                    this.map[i, j] = false;
+                                    this.map[i, j].cellStatus = false;
                                     break;
                                 case 1:
-                                    this.map[i, j] = true;
+                                    this.map[i, j].cellStatus = true;
                                     break;
                             }
                             break;
@@ -80,7 +106,8 @@ namespace GameOfLife
                     {
                         height = height * 10 + s[si] - '0';
                     }
-                    map = tomap(width, height, s.Substring(++si));
+                    
+                    BoolToCells(tomap(width, height, s.Substring(++si)));
                 }
             }
         }
@@ -146,6 +173,79 @@ namespace GameOfLife
         {
             if (radioButton1.Checked == true) radioButton1.Checked = false;
             else radioButton1.Checked = true;
+        }
+
+
+    }
+    public class Cell
+    {
+        static public int timersleep;
+        public static int pixelsize;
+        private static Size cellsize = new Size(pixelsize, pixelsize);
+        public Graphics cellBMP;
+        public bool cellStatus = false;
+        public Cell[] cells { private get; set; }
+        public Thread cellThread;
+
+
+        public Cell()
+        {
+            cellThread = new Thread(Life);
+        }
+
+        private void Life()
+        {
+            while (true)
+            {
+                UpdaateCell();
+                DrawCellsOnMap();
+                Thread.Sleep(timersleep);
+            }
+
+        }
+
+        public void UpdaateCell()
+        {
+            int count = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                if (cells[i].cellStatus == true)
+                {
+                    count++;
+                }
+            }
+            switch (this.cellStatus)
+            {
+                case false:
+                    if (count == 3)
+                        this.cellStatus = true;
+                    else
+                        this.cellStatus = false;
+                    break;
+                case true:
+                    if (count < 2 || count > 3)
+                        this.cellStatus = false;
+                    else
+                        this.cellStatus = true;
+                    break;
+            }
+
+        }
+
+        public void DrawCellsOnMap()
+        {
+            Rectangle ProizvolniyVzmahRukoy = new Rectangle(0, 0, pixelsize, pixelsize);
+            switch (cellStatus)
+            {
+                case false:
+                    this.cellBMP.FillRectangle(Brushes.LightGray, ProizvolniyVzmahRukoy);
+                    this.cellBMP.DrawRectangle(Pens.Gray, ProizvolniyVzmahRukoy);
+                    break;
+                case true:
+                    this.cellBMP.FillRectangle(Brushes.Green, ProizvolniyVzmahRukoy);
+                    this.cellBMP.DrawRectangle(Pens.DarkGreen, ProizvolniyVzmahRukoy);
+                    break;
+            }
         }
 
 
